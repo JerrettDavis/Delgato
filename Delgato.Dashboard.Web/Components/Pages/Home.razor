@@ -1,0 +1,251 @@
+﻿@page "/"
+@using Delgato.Core
+@using Delgato.Dashboard.Web.Services
+@inject AgentManagementService AgentService
+@inject NavigationManager Navigation
+
+<PageTitle>Dashboard - Delgato</PageTitle>
+
+<div>
+    <div class="flex items-center justify-between mb-lg">
+        <div>
+            <h1>Agent Swarm Dashboard</h1>
+            <p class="text-muted text-sm">Monitor and control your AI agent orchestration platform</p>
+        </div>
+        <div class="flex gap-md">
+            <button class="btn btn-secondary" @onclick="RefreshData">
+                <span>⟳</span>
+                <span>Refresh</span>
+            </button>
+            <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/agents/create")'>
+                <span>+</span>
+                <span>New Agent</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-primary">🤖</div>
+            <div class="stat-content">
+                <div class="stat-label">Active Agents</div>
+                <div class="stat-value">@agentCount</div>
+                @if (agentCount > 0)
+                {
+                    <div class="stat-change positive">✓ Loaded from disk</div>
+                }
+                else
+                {
+                    <div class="stat-change text-muted">No agents yet</div>
+                }
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-success">✓</div>
+            <div class="stat-content">
+                <div class="stat-label">Completed Tasks</div>
+                <div class="stat-value">-</div>
+                <div class="stat-change text-muted">Coming in v1</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-warning">⚡</div>
+            <div class="stat-content">
+                <div class="stat-label">Running Plans</div>
+                <div class="stat-value">-</div>
+                <div class="stat-change text-muted">Coming in v1</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-primary">💰</div>
+            <div class="stat-content">
+                <div class="stat-label">Token Usage (24h)</div>
+                <div class="stat-value">-</div>
+                <div class="stat-change text-muted">Coming in v1</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Agents -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Active Agents</h3>
+            <div class="card-actions">
+                <button class="btn btn-sm btn-secondary" @onclick='() => Navigation.NavigateTo("/agents")'>View All</button>
+            </div>
+        </div>
+        
+        @if (agents != null && agents.Count > 0)
+        {
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Agent ID</th>
+                            <th>Name</th>
+                            <th>Capabilities</th>
+                            <th>Status</th>
+                            <th>Budget Usage</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var agent in agents.Take(5))
+                        {
+                            <tr>
+                                <td>
+                                    <code class="text-sm font-mono">@agent.Id</code>
+                                </td>
+                                <td>
+                                    <div class="flex items-center gap-sm">
+                                        <span>@(agent.IsOrchestrator ? "🎯" : "🤖")</span>
+                                        <span>@agent.Name</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="flex gap-sm">
+                                        @foreach (var cap in agent.Capabilities.Take(2))
+                                        {
+                                            <span class="badge badge-info">@cap</span>
+                                        }
+                                        @if (agent.Capabilities.Count > 2)
+                                        {
+                                            <span class="badge badge-info">+@(agent.Capabilities.Count - 2)</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-success">Active</span>
+                                </td>
+                                <td>
+                                    @if (agent.Budget != null && agent.Budget.MaxTokens.HasValue)
+                                    {
+                                        <div class="text-sm">
+                                            <span>0 / @agent.Budget.MaxTokens.Value tokens</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted text-sm">Unlimited</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="flex gap-sm">
+                                        <button class="btn btn-sm btn-secondary" @onclick='() => Navigation.NavigateTo($"/agents/edit/{agent.Id.Value}")'>View</button>
+                                        <button class="btn btn-sm btn-primary" @onclick='() => Navigation.NavigateTo($"/agents/edit/{agent.Id.Value}")'>Edit</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
+                <p>No agents loaded. Check your agents directory configuration.</p>
+            </div>
+        }
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+            <div class="card-actions">
+                <span class="badge badge-info">Coming in v1</span>
+            </div>
+        </div>
+        <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">📊</div>
+            <p>Activity tracking will be available in version 1.0</p>
+            <p class="text-sm">Track plan executions, agent invocations, and system events</p>
+        </div>
+    </div>
+
+    <!-- System Health -->
+    <div class="stats-grid">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">System Health</h4>
+            </div>
+            <div class="flex flex-col gap-md">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Agent Registry</span>
+                    <span class="badge @(agentCount > 0 ? "badge-success" : "badge-warning")">
+                        @(agentCount > 0 ? $"{agentCount} agents loaded" : "No agents")
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Dashboard Service</span>
+                    <span class="badge badge-success">Online</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">File System</span>
+                    <span class="badge badge-success">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Quick Actions</h4>
+            </div>
+            <div class="flex flex-col gap-sm">
+                <button class="btn btn-secondary" @onclick='() => Navigation.NavigateTo("/agents/create")'>
+                    <span>🚀</span>
+                    <span>Create New Agent</span>
+                </button>
+                <button class="btn btn-secondary" @onclick='() => Navigation.NavigateTo("/agents")'>
+                    <span>📊</span>
+                    <span>View All Agents</span>
+                </button>
+                <button class="btn btn-secondary" @onclick="RefreshData">
+                    <span>⟳</span>
+                    <span>Refresh Dashboard</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IReadOnlyList<AgentDefinition>? agents;
+    private int agentCount = 0;
+    private bool loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        loading = true;
+        StateHasChanged();
+
+        try
+        {
+            agents = await AgentService.GetAllAgentsAsync();
+            agentCount = agents?.Count ?? 0;
+        }
+        catch (Exception ex)
+        {
+            // Log error - agents list will remain empty
+            Console.WriteLine($"Error loading agents: {ex.Message}");
+            agentCount = 0;
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+}
+

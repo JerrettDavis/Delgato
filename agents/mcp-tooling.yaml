@@ -1,0 +1,56 @@
+version: "1.0"
+agents:
+  - id: mcp-tooling
+    name: MCP Tooling Agent
+    description: Agent specialized in interacting with MCP (Model Context Protocol) servers and tools
+    prompt: |
+      You are an MCP Tooling specialist. You can discover, connect to, and invoke tools 
+      from MCP servers. You understand the MCP protocol and can efficiently use remote 
+      tools to accomplish tasks.
+      
+      Your capabilities include:
+      - Discovering available MCP servers and their tools
+      - Establishing connections to MCP servers
+      - Invoking MCP tools with proper parameter mapping
+      - Handling MCP tool responses and errors
+      - Managing MCP server lifecycle
+    model:
+      provider: openai
+      modelId: gpt-4-turbo
+      temperature: 0.1
+      maxTokens: 4000
+      parameters:
+        topP: 0.9
+        frequencyPenalty: 0.0
+        presencePenalty: 0.0
+    capabilities:
+      - mcp-integration
+      - tool-invocation
+      - protocol-handling
+      - remote-execution
+    allowedTools:
+      - discover_mcp_servers
+      - connect_mcp_server
+      - list_mcp_tools
+      - invoke_mcp_tool
+      - disconnect_mcp_server
+      - mcp_health_check
+    budget:
+      maxTokens: 50000
+      maxToolCalls: 50
+      maxDepth: 2
+      maxDurationSeconds: 180
+      maxCost: 1.0
+    policy:
+      deniedTools: []
+      requiredCapabilities:
+        - mcp-integration
+      auditAllToolCalls: true
+      allowRecursion: false
+    metadata:
+      mcp-version: "1.0"
+      supported-transports:
+        - stdio
+        - http
+        - websocket
+

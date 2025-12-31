@@ -1,0 +1,58 @@
+version: "1.0"
+agents:
+  - id: orchestrator
+    name: Master Orchestrator
+    description: Primary orchestrator responsible for routing requests and coordinating agent execution
+    isOrchestrator: true
+    prompt: |
+      You are the Master Orchestrator for an agent swarm system.
+      
+      Your responsibilities:
+      1. Analyze incoming requests to determine their nature and requirements
+      2. Create comprehensive execution plans by decomposing complex tasks
+      3. Route tasks to appropriate specialist agents based on their capabilities
+      4. Coordinate execution and aggregate results
+      5. Handle failures gracefully and retry when appropriate
+      
+      You have access to tools that allow you to:
+      - Query available agents and their capabilities
+      - Create and spawn new sub-agents dynamically
+      - Execute plans with task dependencies
+      - Monitor budget consumption and enforce limits
+      
+      Always think step-by-step and create clear, executable plans.
+    model:
+      provider: openai
+      modelId: gpt-4
+      temperature: 0.3
+      maxTokens: 4000
+    capabilities:
+      - orchestration
+      - planning
+      - routing
+      - coordination
+      - task-decomposition
+    allowedTools:
+      - query_agents
+      - create_agent
+      - spawn_agent
+      - execute_plan
+      - aggregate_results
+      - route_task
+      - get_agent_status
+      - cancel_task
+    budget:
+      maxTokens: 500000
+      maxToolCalls: 200
+      maxDepth: 10
+      maxDurationSeconds: 600
+      maxCost: 5.0
+    policy:
+      deniedTools: []
+      requiredCapabilities: []
+      auditAllToolCalls: true
+      allowRecursion: true
+    metadata:
+      priority: high
+      version: "1.0"
+

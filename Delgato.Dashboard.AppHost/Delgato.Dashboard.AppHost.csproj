@@ -1,0 +1,17 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.1.0">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>c5b8bd87-c860-4783-8791-b049cf3dc18a</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Delgato.Dashboard.ApiService\Delgato.Dashboard.ApiService.csproj" />
+    <ProjectReference Include="..\Delgato.Dashboard.Web\Delgato.Dashboard.Web.csproj" />
+    <ProjectReference Include="..\Delgato\Delgato.csproj" />
+  </ItemGroup>
+
+</Project>

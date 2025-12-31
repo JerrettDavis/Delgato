@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Delgato.Dashboard.ServiceDefaults\Delgato.Dashboard.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Delgato.Core\Delgato.Core.csproj" />
+    <ProjectReference Include="..\Delgato.Agents\Delgato.Agents.csproj" />
+    <ProjectReference Include="..\Delgato.Orchestration\Delgato.Orchestration.csproj" />
+  </ItemGroup>
+
+</Project>

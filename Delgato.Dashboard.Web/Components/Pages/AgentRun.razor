@@ -1,0 +1,230 @@
+@page "/agents/run/{AgentId}"
+@using Delgato.Core
+@using Delgato.Dashboard.Web.Services
+@inject AgentManagementService AgentService
+@inject AgentExecutionService ExecutionService
+@inject NavigationManager Navigation
+
+<PageTitle>Run Agent - @agentName - Delgato</PageTitle>
+
+<div>
+    <div class="flex items-center justify-between mb-lg">
+        <div>
+            <h1>Run Agent: @agentName</h1>
+            <p class="text-muted text-sm">Execute agent with custom input</p>
+        </div>
+        <div class="flex gap-md">
+            <button class="btn btn-secondary" @onclick="Cancel">
+                <span>←</span>
+                <span>Back to Agents</span>
+            </button>
+        </div>
+    </div>
+
+    @if (agent != null)
+    {
+        <!-- Agent Info Card -->
+        <div class="card mb-lg">
+            <div class="card-header">
+                <h3 class="card-title">Agent Information</h3>
+            </div>
+            <div style="padding: var(--spacing-lg);">
+                <div class="flex gap-lg" style="flex-wrap: wrap;">
+                    <div>
+                        <div class="text-sm text-muted mb-xs">Agent ID</div>
+                        <code class="text-sm">@agent.Id</code>
+                    </div>
+                    <div>
+                        <div class="text-sm text-muted mb-xs">Provider</div>
+                        <span class="badge badge-info">@agent.Model?.Provider</span>
+                    </div>
+                    <div>
+                        <div class="text-sm text-muted mb-xs">Model</div>
+                        <span class="badge badge-primary">@agent.Model?.ModelId</span>
+                    </div>
+                    @if (agent.Capabilities.Count > 0)
+                    {
+                        <div>
+                            <div class="text-sm text-muted mb-xs">Capabilities</div>
+                            <div class="flex gap-xs">
+                                @foreach (var cap in agent.Capabilities.Take(3))
+                                {
+                                    <span class="badge badge-success text-xs">@cap</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Execution Form -->
+        <div class="card mb-lg">
+            <div class="card-header">
+                <h3 class="card-title">Input</h3>
+            </div>
+            <div style="padding: var(--spacing-lg);">
+                <div class="form-group">
+                    <label class="form-label">Your Message/Request*</label>
+                    <textarea class="form-textarea" @bind="userInput" rows="6" 
+                        placeholder="Enter your request or question for the agent..."
+                        disabled="@executing"></textarea>
+                    <small class="text-muted text-xs">This will be sent to the agent for processing</small>
+                </div>
+
+                <button class="btn btn-primary" @onclick="ExecuteAgent" disabled="@(executing || string.IsNullOrWhiteSpace(userInput))">
+                    @if (executing)
+                    {
+                        <span>⏳</span>
+                        <span>Executing...</span>
+                    }
+                    else
+                    {
+                        <span>▶️</span>
+                        <span>Run Agent</span>
+                    }
+                </button>
+            </div>
+        </div>
+
+        <!-- Results -->
+        @if (executionResult != null)
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        @if (executionResult.Success)
+                        {
+                            <span>✅ Execution Successful</span>
+                        }
+                        else
+                        {
+                            <span>❌ Execution Failed</span>
+                        }
+                    </h3>
+                </div>
+                <div style="padding: var(--spacing-lg);">
+                    @if (executionResult.Success)
+                    {
+                        <div class="form-group">
+                            <div class="form-label">Agent Response</div>
+                            <div class="code-block" style="white-space: pre-wrap;">@executionResult.Output</div>
+                        </div>
+
+                        <div class="flex gap-lg" style="margin-top: var(--spacing-lg);">
+                            <div>
+                                <div class="text-sm text-muted">Tokens Used</div>
+                                <div class="text-lg font-bold">@executionResult.TokensUsed</div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-muted">Execution Time</div>
+                                <div class="text-lg font-bold">@executionResult.ExecutionTime.TotalSeconds.ToString("F2")s</div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-muted">Correlation ID</div>
+                                <code class="text-sm">@executionResult.CorrelationId</code>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-group">
+                            <div class="form-label">Error</div>
+                            <div class="code-block" style="color: var(--error);">@executionResult.Error</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else if (loading)
+    {
+        <div class="card">
+            <div style="padding: 2rem; text-align: center;">
+                <p>Loading agent...</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div style="padding: 2rem; text-align: center; color: var(--error);">
+                <p>Agent not found</p>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? AgentId { get; set; }
+
+    private AgentDefinition? agent;
+    private string agentName = "";
+    private string userInput = "";
+    private bool loading = true;
+    private bool executing = false;
+    private AgentExecutionResult? executionResult;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(AgentId))
+        {
+            await LoadAgent(AgentId);
+        }
+    }
+
+    private async Task LoadAgent(string id)
+    {
+        loading = true;
+        try
+        {
+            agent = await AgentService.GetAgentAsync(id);
+            agentName = agent?.Name ?? id;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading agent: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task ExecuteAgent()
+    {
+        if (string.IsNullOrWhiteSpace(userInput) || agent == null)
+            return;
+
+        executing = true;
+        executionResult = null;
+        StateHasChanged();
+
+        try
+        {
+            executionResult = await ExecutionService.ExecuteAgentAsync(
+                agent.Id.Value,
+                userInput);
+        }
+        catch (Exception ex)
+        {
+            executionResult = new AgentExecutionResult
+            {
+                Success = false,
+                Error = ex.Message
+            };
+        }
+        finally
+        {
+            executing = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/agents");
+    }
+}
+

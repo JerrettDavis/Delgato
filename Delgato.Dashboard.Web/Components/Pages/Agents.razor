@@ -1,0 +1,414 @@
+@page "/agents"
+@using Delgato.Core
+@using Delgato.Core.Abstractions
+@using Delgato.Dashboard.Web.Services
+@inject AgentManagementService AgentService
+@inject NavigationManager Navigation
+
+<PageTitle>Agents - Delgato</PageTitle>
+
+<div>
+    <div class="flex items-center justify-between mb-lg">
+        <div>
+            <h1>Agents</h1>
+            <p class="text-muted text-sm">Manage your AI agents and their configurations</p>
+        </div>
+        <div class="flex gap-md">
+            <button class="btn btn-secondary" @onclick="RefreshAgents">
+                <span>⟳</span>
+                <span>Refresh</span>
+            </button>
+            <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/agents/create")'>
+                <span>+</span>
+                <span>Register Agent</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Agent Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-primary">🤖</div>
+            <div class="stat-content">
+                <div class="stat-label">Total Agents</div>
+                <div class="stat-value">@(agents?.Count ?? 0)</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-success">🎯</div>
+            <div class="stat-content">
+                <div class="stat-label">Orchestrators</div>
+                <div class="stat-value">@(agents?.Count(a => a.IsOrchestrator) ?? 0)</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-warning">🔧</div>
+            <div class="stat-content">
+                <div class="stat-label">Specialists</div>
+                <div class="stat-value">@(agents?.Count(a => !a.IsOrchestrator) ?? 0)</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-info">📋</div>
+            <div class="stat-content">
+                <div class="stat-label">Capabilities</div>
+                <div class="stat-value">@uniqueCapabilities</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agents List -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">All Agents</h3>
+            <div class="card-actions">
+                <input type="search" class="form-input" placeholder="Search agents..." style="width: 250px;" @bind="searchQuery" @bind:event="oninput" />
+            </div>
+        </div>
+
+        @if (loading)
+        {
+            <div style="padding: 3rem; text-align: center;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+                <p class="text-muted" style="margin-top: 1rem;">Loading agents...</p>
+            </div>
+        }
+        else if (filteredAgents != null && filteredAgents.Any())
+        {
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Type</th>
+                            <th>Capabilities</th>
+                            <th>Model</th>
+                            <th>Budget</th>
+                            <th>Tools</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var agent in filteredAgents)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="flex flex-col">
+                                        <div class="flex items-center gap-sm mb-xs">
+                                            <span style="font-size: 1.25rem;">@(agent.IsOrchestrator ? "🎯" : "🤖")</span>
+                                            <strong>@agent.Name</strong>
+                                        </div>
+                                        <code class="text-xs text-muted font-mono">@agent.Id</code>
+                                        @if (!string.IsNullOrEmpty(agent.Description))
+                                        {
+                                            <div class="text-sm text-muted" style="margin-top: 0.25rem;">@agent.Description</div>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (agent.IsOrchestrator)
+                                    {
+                                        <span class="badge badge-warning">Orchestrator</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-info">Specialist</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="flex flex-col gap-xs">
+                                        @foreach (var cap in agent.Capabilities.Take(3))
+                                        {
+                                            <span class="badge badge-info">@cap</span>
+                                        }
+                                        @if (agent.Capabilities.Count > 3)
+                                        {
+                                            <span class="text-xs text-muted">+@(agent.Capabilities.Count - 3) more</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (agent.Model != null)
+                                    {
+                                        <div class="flex flex-col">
+                                            <span class="text-sm">@agent.Model.Provider</span>
+                                            <code class="text-xs text-muted font-mono">@agent.Model.ModelId</code>
+                                            <span class="text-xs text-muted">temp: @agent.Model.Temperature</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted text-sm">Not configured</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (agent.Budget != null)
+                                    {
+                                        <div class="flex flex-col text-xs">
+                                            @if (agent.Budget.MaxTokens.HasValue)
+                                            {
+                                                <span>Tokens: @agent.Budget.MaxTokens.Value</span>
+                                            }
+                                            @if (agent.Budget.MaxToolCalls.HasValue)
+                                            {
+                                                <span>Tools: @agent.Budget.MaxToolCalls.Value</span>
+                                            }
+                                            @if (agent.Budget.MaxDepth.HasValue)
+                                            {
+                                                <span>Depth: @agent.Budget.MaxDepth.Value</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-success">Unlimited</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm">@agent.AllowedTools.Count allowed</span>
+                                        @if (agent.Policy?.DeniedTools.Count > 0)
+                                        {
+                                            <span class="text-xs text-muted">@agent.Policy.DeniedTools.Count denied</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="flex gap-sm">
+                                        <button class="btn btn-sm btn-secondary" @onclick="() => ViewAgent(agent)">
+                                            View
+                                        </button>
+                                        <button class="btn btn-sm btn-success" @onclick='() => Navigation.NavigateTo($"/agents/run/{agent.Id.Value}")'>
+                                            Run
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" @onclick='() => Navigation.NavigateTo($"/agents/edit/{agent.Id.Value}")'>
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-error" @onclick="() => ConfirmDelete(agent)">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div style="padding: 3rem; text-align: center; color: var(--text-muted);">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
+                <p>No agents found matching your search.</p>
+            </div>
+        }
+    </div>
+
+    <!-- Agent Detail Modal -->
+    @if (selectedAgent != null)
+    {
+        <div class="modal-overlay" @onclick="CloseModal">
+            <div class="modal" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>@selectedAgent.Name</h3>
+                    <button class="btn btn-sm btn-secondary" @onclick="CloseModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="form-label">Agent ID</div>
+                        <code class="code-block">@selectedAgent.Id</code>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(selectedAgent.Description))
+                    {
+                        <div class="form-group">
+                            <div class="form-label">Description</div>
+                            <p>@selectedAgent.Description</p>
+                        </div>
+                    }
+
+                    <div class="form-group">
+                        <div class="form-label">Capabilities</div>
+                        <div class="flex gap-sm" style="flex-wrap: wrap;">
+                            @foreach (var cap in selectedAgent.Capabilities)
+                            {
+                                <span class="badge badge-info">@cap</span>
+                            }
+                        </div>
+                    </div>
+
+                    @if (selectedAgent.Model != null)
+                    {
+                        <div class="form-group">
+                            <div class="form-label">Model Configuration</div>
+                            <div class="code-block">
+                                Provider: @selectedAgent.Model.Provider<br/>
+                                Model: @selectedAgent.Model.ModelId<br/>
+                                Temperature: @selectedAgent.Model.Temperature<br/>
+                                @if (selectedAgent.Model.MaxTokens.HasValue)
+                                {
+                                    <span>Max Tokens: @selectedAgent.Model.MaxTokens</span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (selectedAgent.AllowedTools.Count > 0)
+                    {
+                        <div class="form-group">
+                            <div class="form-label">Allowed Tools (@selectedAgent.AllowedTools.Count)</div>
+                            <div class="flex gap-sm" style="flex-wrap: wrap;">
+                                @foreach (var tool in selectedAgent.AllowedTools)
+                                {
+                                    <span class="badge badge-success">@tool</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                    <button class="btn btn-success" @onclick='() => Navigation.NavigateTo($"/agents/run/{selectedAgent.Id.Value}")'>Run Agent</button>
+                    <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo($"/agents/edit/{selectedAgent.Id.Value}")'>Edit Agent</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Delete Confirmation Modal -->
+    @if (agentToDelete != null)
+    {
+        <div class="modal-overlay" @onclick="CancelDelete">
+            <div class="modal" @onclick:stopPropagation="true" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h3>Confirm Delete</h3>
+                    <button class="btn btn-sm btn-secondary" @onclick="CancelDelete">✕</button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong>@agentToDelete.Name</strong>?</p>
+                    <p class="text-muted text-sm">This action cannot be undone. The agent YAML file will be permanently deleted.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                    <button class="btn btn-error" @onclick="DeleteAgent" disabled="@deleting">
+                        @(deleting ? "Deleting..." : "Delete Agent")
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<AgentDefinition>? agents;
+    private IEnumerable<AgentDefinition>? filteredAgents;
+    private AgentDefinition? selectedAgent;
+    private AgentDefinition? agentToDelete;
+    private string searchQuery = "";
+    private bool loading = true;
+    private bool deleting = false;
+    private int uniqueCapabilities = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAgents();
+    }
+
+    private async Task RefreshAgents()
+    {
+        loading = true;
+        StateHasChanged();
+
+        try
+        {
+            agents = await AgentService.GetAllAgentsAsync();
+            FilterAgents();
+            
+            // Calculate unique capabilities
+            if (agents != null)
+            {
+                uniqueCapabilities = agents
+                    .SelectMany(a => a.Capabilities)
+                    .Distinct()
+                    .Count();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading agents: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void FilterAgents()
+    {
+        if (agents == null)
+        {
+            filteredAgents = null;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            filteredAgents = agents;
+            return;
+        }
+
+        var query = searchQuery.ToLowerInvariant();
+        filteredAgents = agents.Where(a =>
+            a.Name.ToLowerInvariant().Contains(query) ||
+            a.Id.Value.ToLowerInvariant().Contains(query) ||
+            (a.Description?.ToLowerInvariant().Contains(query) ?? false) ||
+            a.Capabilities.Any(c => c.ToLowerInvariant().Contains(query))
+        );
+    }
+
+    private void ViewAgent(AgentDefinition agent)
+    {
+        selectedAgent = agent;
+    }
+
+    private void CloseModal()
+    {
+        selectedAgent = null;
+    }
+
+    private void ConfirmDelete(AgentDefinition agent)
+    {
+        agentToDelete = agent;
+    }
+
+    private void CancelDelete()
+    {
+        agentToDelete = null;
+    }
+
+    private async Task DeleteAgent()
+    {
+        if (agentToDelete == null) return;
+
+        deleting = true;
+        try
+        {
+            await AgentService.DeleteAgentAsync(agentToDelete.Id.Value);
+            agentToDelete = null;
+            await RefreshAgents();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting agent: {ex.Message}");
+        }
+        finally
+        {
+            deleting = false;
+        }
+    }
+}
+

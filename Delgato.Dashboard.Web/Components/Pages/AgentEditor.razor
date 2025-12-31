@@ -1,0 +1,343 @@
+@page "/agents/create"
+@page "/agents/edit/{AgentId}"
+@using Delgato.Core
+@using Delgato.Dashboard.Web.Services
+@inject AgentManagementService AgentService
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsEditMode ? "Edit Agent" : "Create Agent") - Delgato</PageTitle>
+
+<div>
+    <div class="flex items-center justify-between mb-lg">
+        <div>
+            <h1>@(IsEditMode ? "Edit Agent" : "Create New Agent")</h1>
+            <p class="text-muted text-sm">@(IsEditMode ? $"Editing {agentId}" : "Define a new AI agent")</p>
+        </div>
+        <div class="flex gap-md">
+            <button class="btn btn-secondary" @onclick="Cancel">
+                <span>✕</span>
+                <span>Cancel</span>
+            </button>
+            <button class="btn btn-primary" @onclick="SaveAgent" disabled="@saving">
+                <span>💾</span>
+                <span>@(saving ? "Saving..." : "Save Agent")</span>
+            </button>
+        </div>
+    </div>
+
+    @if (error != null)
+    {
+        <div class="card" style="background: rgba(239, 68, 68, 0.1); border-color: var(--error); margin-bottom: var(--spacing-lg);">
+            <div style="color: var(--error);">
+                <strong>Error:</strong> @error
+            </div>
+        </div>
+    }
+
+    <!-- Agent Form -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Basic Information</h3>
+        </div>
+        <div style="padding: var(--spacing-lg);">
+            <div class="form-group">
+                <label class="form-label">Agent ID*</label>
+                <input type="text" class="form-input" @bind="form.Id" disabled="@IsEditMode" placeholder="e.g., my-agent" />
+                <small class="text-muted text-xs">Unique identifier (lowercase, hyphens only)</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Name*</label>
+                <input type="text" class="form-input" @bind="form.Name" placeholder="e.g., My AI Agent" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-textarea" @bind="form.Description" placeholder="What does this agent do?"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Is Orchestrator</label>
+                <div class="flex items-center gap-sm">
+                    <input type="checkbox" @bind="form.IsOrchestrator" />
+                    <span class="text-sm">This agent can coordinate other agents</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Configuration -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Model Configuration</h3>
+        </div>
+        <div style="padding: var(--spacing-lg);">
+            <div class="form-group">
+                <label class="form-label">Provider*</label>
+                <select class="form-select" @bind="form.Provider">
+                    <option value="">Select provider...</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="azure">Azure OpenAI</option>
+                    <option value="claude">Claude (Anthropic)</option>
+                    <option value="ollama">Ollama (Local)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Model ID*</label>
+                <input type="text" class="form-input" @bind="form.ModelId" placeholder="e.g., gpt-4, claude-3-5-sonnet-20241022" />
+                <small class="text-muted text-xs">
+                    @if (form.Provider == "openai") { <span>Examples: gpt-4, gpt-3.5-turbo</span> }
+                    @if (form.Provider == "claude") { <span>Examples: claude-3-5-sonnet-20241022, claude-3-opus-20240229</span> }
+                    @if (form.Provider == "ollama") { <span>Examples: codellama:13b, llama2:13b, mistral:7b</span> }
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Temperature</label>
+                <input type="number" class="form-input" @bind="form.Temperature" min="0" max="2" step="0.1" placeholder="0.7" />
+                <small class="text-muted text-xs">Lower = more focused, Higher = more creative (0.0 - 2.0)</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Max Tokens</label>
+                <input type="number" class="form-input" @bind="form.MaxTokens" placeholder="4096" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Prompt</h3>
+        </div>
+        <div style="padding: var(--spacing-lg);">
+            <div class="form-group">
+                <label class="form-label">System Prompt*</label>
+                <textarea class="form-textarea" @bind="form.Prompt" rows="10" 
+                    placeholder="You are a helpful AI assistant..."></textarea>
+                <small class="text-muted text-xs">Instructions that define the agent's behavior and personality</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capabilities -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Capabilities</h3>
+        </div>
+        <div style="padding: var(--spacing-lg);">
+            <div class="form-group">
+                <label class="form-label">Capabilities (comma-separated)</label>
+                <input type="text" class="form-input" @bind="form.Capabilities" 
+                    placeholder="e.g., code-generation, analysis, reasoning" />
+                <small class="text-muted text-xs">Tags that describe what this agent can do</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget & Limits -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Budget & Limits</h3>
+        </div>
+        <div style="padding: var(--spacing-lg);">
+            <div class="form-group">
+                <label class="form-label">Max Tokens (Budget)</label>
+                <input type="number" class="form-input" @bind="form.BudgetMaxTokens" placeholder="100000" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Max Tool Calls</label>
+                <input type="number" class="form-input" @bind="form.BudgetMaxToolCalls" placeholder="50" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Max Recursion Depth</label>
+                <input type="number" class="form-input" @bind="form.BudgetMaxDepth" placeholder="5" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Max Duration (seconds)</label>
+                <input type="number" class="form-input" @bind="form.BudgetMaxDuration" placeholder="300" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Max Cost ($)</label>
+                <input type="number" class="form-input" @bind="form.BudgetMaxCost" step="0.01" placeholder="10.00" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Tools -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Allowed Tools</h3>
+        </div>
+        <div style="padding: var(--spacing-lg);">
+            <div class="form-group">
+                <label class="form-label">Allowed Tools (comma-separated)</label>
+                <input type="text" class="form-input" @bind="form.AllowedTools" 
+                    placeholder="e.g., read_file, search_code, analyze_text" />
+                <small class="text-muted text-xs">Tools this agent is permitted to use</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? AgentId { get; set; }
+
+    private bool IsEditMode => !string.IsNullOrEmpty(AgentId);
+    private string? agentId;
+    private bool saving = false;
+    private string? error = null;
+
+    private AgentForm form = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        agentId = AgentId;
+
+        if (IsEditMode && agentId != null)
+        {
+            await LoadAgent(agentId);
+        }
+    }
+
+    private async Task LoadAgent(string id)
+    {
+        try
+        {
+            var agent = await AgentService.GetAgentAsync(id);
+            if (agent != null)
+            {
+                form = new AgentForm
+                {
+                    Id = agent.Id.Value,
+                    Name = agent.Name,
+                    Description = agent.Description,
+                    IsOrchestrator = agent.IsOrchestrator,
+                    Provider = agent.Model?.Provider ?? "",
+                    ModelId = agent.Model?.ModelId ?? "",
+                    Temperature = agent.Model?.Temperature ?? 0.7,
+                    MaxTokens = agent.Model?.MaxTokens,
+                    Prompt = agent.Prompt ?? "",
+                    Capabilities = string.Join(", ", agent.Capabilities),
+                    AllowedTools = string.Join(", ", agent.AllowedTools),
+                    BudgetMaxTokens = agent.Budget?.MaxTokens,
+                    BudgetMaxToolCalls = agent.Budget?.MaxToolCalls,
+                    BudgetMaxDepth = agent.Budget?.MaxDepth,
+                    BudgetMaxDuration = (int?)agent.Budget?.MaxDuration?.TotalSeconds,
+                    BudgetMaxCost = agent.Budget?.MaxCost
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load agent: {ex.Message}";
+        }
+    }
+
+    private async Task SaveAgent()
+    {
+        error = null;
+        saving = true;
+
+        try
+        {
+            // Validate
+            if (string.IsNullOrWhiteSpace(form.Id))
+            {
+                error = "Agent ID is required";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(form.Name))
+            {
+                error = "Agent name is required";
+                return;
+            }
+
+            // Build agent definition
+            var definition = new AgentDefinition
+            {
+                Id = new AgentId(form.Id.Trim().ToLowerInvariant()),
+                Name = form.Name,
+                Description = form.Description,
+                IsOrchestrator = form.IsOrchestrator,
+                Prompt = form.Prompt,
+                Model = new ModelConfiguration
+                {
+                    Provider = form.Provider,
+                    ModelId = form.ModelId,
+                    Temperature = form.Temperature,
+                    MaxTokens = form.MaxTokens
+                },
+                Capabilities = form.Capabilities?
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .ToList() ?? new List<string>(),
+                AllowedTools = form.AllowedTools?
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .ToList() ?? new List<string>(),
+                Budget = new Budget
+                {
+                    MaxTokens = form.BudgetMaxTokens,
+                    MaxToolCalls = form.BudgetMaxToolCalls,
+                    MaxDepth = form.BudgetMaxDepth,
+                    MaxDuration = form.BudgetMaxDuration.HasValue 
+                        ? TimeSpan.FromSeconds(form.BudgetMaxDuration.Value) 
+                        : null,
+                    MaxCost = form.BudgetMaxCost
+                }
+            };
+
+            if (IsEditMode)
+            {
+                await AgentService.UpdateAgentAsync(definition);
+            }
+            else
+            {
+                await AgentService.CreateAgentAsync(definition);
+            }
+
+            // Navigate back to agents list
+            Navigation.NavigateTo("/agents");
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to save agent: {ex.Message}";
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/agents");
+    }
+
+    private class AgentForm
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string? Description { get; set; }
+        public bool IsOrchestrator { get; set; }
+        public string Provider { get; set; } = "";
+        public string ModelId { get; set; } = "";
+        public double Temperature { get; set; } = 0.7;
+        public int? MaxTokens { get; set; }
+        public string Prompt { get; set; } = "";
+        public string? Capabilities { get; set; }
+        public string? AllowedTools { get; set; }
+        public int? BudgetMaxTokens { get; set; }
+        public int? BudgetMaxToolCalls { get; set; }
+        public int? BudgetMaxDepth { get; set; }
+        public int? BudgetMaxDuration { get; set; }
+        public decimal? BudgetMaxCost { get; set; }
+    }
+}
+

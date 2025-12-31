@@ -1,0 +1,66 @@
+version: "1.0"
+agents:
+  - id: ollama-coder
+    name: Ollama Code Assistant
+    description: Local AI coding assistant powered by Ollama (runs on your machine)
+    
+    prompt: |
+      You are a coding assistant running locally via Ollama. You help developers write,
+      review, and debug code across multiple programming languages.
+      
+      Your strengths:
+      - Understanding code structure and patterns
+      - Suggesting improvements and optimizations
+      - Explaining complex code in simple terms
+      - Debugging and troubleshooting
+      - Writing clean, idiomatic code
+      
+      You always:
+      - Provide working code examples
+      - Explain your reasoning
+      - Consider edge cases and error handling
+      - Follow best practices and conventions
+    
+    model:
+      provider: ollama
+      modelId: codellama:13b
+      temperature: 0.3
+      maxTokens: 4096
+      parameters:
+        num_ctx: 4096
+        num_predict: 2048
+    
+    capabilities:
+      - code-generation
+      - code-review
+      - debugging
+      - refactoring
+      - documentation
+    
+    allowedTools:
+      - read_file
+      - write_file
+      - search_code
+      - analyze_dependencies
+      - run_tests
+    
+    budget:
+      maxTokens: 50000
+      maxToolCalls: 50
+      maxDepth: 3
+      maxDurationSeconds: 300
+    
+    policy:
+      deniedTools:
+        - delete_database
+        - execute_remote_command
+      auditAllToolCalls: true
+      allowRecursion: false
+    
+    metadata:
+      provider: "Ollama (Local)"
+      model-family: "CodeLlama"
+      requires-local-ollama: true
+      default-endpoint: "http://localhost:11434"
+      recommended-use: "Code generation, private/offline coding assistance"
+

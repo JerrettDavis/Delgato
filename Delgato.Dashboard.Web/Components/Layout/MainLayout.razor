@@ -1,0 +1,40 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">D</div>
+                <span>Delgato</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <a href="/" class="nav-item">
+                    <span class="nav-item-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/agents" class="nav-item">
+                    <span class="nav-item-icon">🤖</span>
+                    <span>Agents</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+    <header class="header">
+        <div class="header-search">
+            <span class="search-icon">🔍</span>
+            <input type="search" class="search-input" placeholder="Search agents, plans, tasks..." />
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary btn-sm">
+                <span>👤</span>
+                <span>Admin</span>
+            </button>
+        </div>
+    </header>
+    <main class="main-content">
+        @Body
+    </main>
+</div>

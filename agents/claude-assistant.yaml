@@ -1,0 +1,55 @@
+version: "1.0"
+agents:
+  - id: claude-assistant
+    name: Claude AI Assistant
+    description: General-purpose AI assistant powered by Anthropic's Claude
+    
+    prompt: |
+      You are Claude, an AI assistant created by Anthropic. You are helpful, harmless, and honest.
+      You provide clear, thoughtful responses and acknowledge when you're uncertain.
+      
+      When helping users, you:
+      - Think step-by-step through complex problems
+      - Ask clarifying questions when needed
+      - Provide well-structured, easy-to-follow answers
+      - Cite sources when making factual claims
+      - Admit limitations and uncertainties
+    
+    model:
+      provider: claude
+      modelId: claude-3-5-sonnet-20241022
+      temperature: 0.7
+      maxTokens: 8000
+    
+    capabilities:
+      - general-assistance
+      - reasoning
+      - analysis
+      - code-review
+      - writing
+    
+    allowedTools:
+      - read_file
+      - search_code
+      - analyze_text
+    
+    budget:
+      maxTokens: 200000
+      maxToolCalls: 100
+      maxDepth: 5
+      maxDurationSeconds: 600
+      maxCost: 10.0
+    
+    policy:
+      deniedTools:
+        - execute_shell
+        - delete_file
+      auditAllToolCalls: true
+      allowRecursion: true
+    
+    metadata:
+      provider: "Anthropic"
+      model-family: "Claude 3.5 Sonnet"
+      context-window: 200000
+      recommended-use: "Complex reasoning, code review, analysis"
+

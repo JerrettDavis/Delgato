@@ -1,0 +1,51 @@
+version: "1.0"
+agents:
+  - id: repo-analyzer
+    name: Repository Analyzer
+    description: Specialist agent for analyzing code repositories, understanding structure, and extracting insights
+    promptRef:
+      source: file
+      value: ./prompts/repo-analyzer.txt
+    model:
+      provider: openai
+      modelId: gpt-4
+      temperature: 0.2
+      maxTokens: 8000
+    capabilities:
+      - code-analysis
+      - repository-understanding
+      - architecture-review
+      - dependency-analysis
+      - pattern-detection
+    allowedTools:
+      - read_file
+      - list_directory
+      - search_code
+      - git_log
+      - git_diff
+      - analyze_dependencies
+      - detect_patterns
+      - extract_metrics
+    budget:
+      maxTokens: 100000
+      maxToolCalls: 100
+      maxDepth: 3
+      maxDurationSeconds: 300
+      maxCost: 2.0
+    policy:
+      deniedTools:
+        - delete_file
+        - write_file
+        - execute_command
+      requiredCapabilities:
+        - code-analysis
+      auditAllToolCalls: true
+      allowRecursion: false
+    metadata:
+      specialization: static-analysis
+      language-support:
+        - csharp
+        - python
+        - javascript
+        - typescript
+
