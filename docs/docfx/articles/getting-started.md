@@ -14,8 +14,8 @@ This guide will help you get up and running with Delgato in minutes.
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/delgato.git
-cd delgato
+git clone https://github.com/JerrettDavis/Delgato.git
+cd Delgato
 
 # Build the solution
 dotnet build
@@ -188,5 +188,5 @@ delgato health check
 ## Getting Help
 
 - Check the [FAQ](faq.md)
-- Search [GitHub Issues](https://github.com/your-org/delgato/issues)
+- Search [GitHub Issues](https://github.com/JerrettDavis/Delgato/issues)
 - Join our [Discord Community](https://discord.gg/delgato)

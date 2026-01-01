@@ -58,6 +58,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 LABEL org.opencontainers.image.title="Delgato API Service"
 LABEL org.opencontainers.image.description="Enterprise Agent Swarm API"
 LABEL org.opencontainers.image.vendor="Delgato"
-LABEL org.opencontainers.image.source="https://github.com/your-org/delgato"
+LABEL org.opencontainers.image.source="https://github.com/JerrettDavis/Delgato"
 
 ENTRYPOINT ["dotnet", "Delgato.Dashboard.ApiService.dll"]

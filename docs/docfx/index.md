@@ -20,7 +20,7 @@ Delgato is an extensible, pluggable, secure, enterprise-grade agent swarm platfo
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/delgato.git
+git clone https://github.com/JerrettDavis/Delgato.git
 
 # Build the solution
 dotnet build
@@ -73,6 +73,6 @@ Full API documentation for developers.
 
 ## Support
 
-- [GitHub Issues](https://github.com/your-org/delgato/issues)
+- [GitHub Issues](https://github.com/JerrettDavis/Delgato/issues)
 - [Documentation](https://delgato.dev/docs)
 - [Community Discord](https://discord.gg/delgato)

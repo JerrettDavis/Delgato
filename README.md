@@ -2,7 +2,7 @@
 
 **Status**: Production-Ready Enterprise Platform
 
-[![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/your-org/delgato)
+[![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/JerrettDavis/Delgato)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -30,7 +30,7 @@ Delgato is an extensible, pluggable, secure, enterprise-grade agent swarm platfo
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/delgato.git
+git clone https://github.com/JerrettDavis/Delgato.git
 cd delgato
 
 # Set up API keys
@@ -356,5 +356,5 @@ MIT License - See [LICENSE](LICENSE) file
 ## Support
 
 - [Documentation](docs/)
-- [GitHub Issues](https://github.com/your-org/delgato/issues)
-- [Discussions](https://github.com/your-org/delgato/discussions)
+- [GitHub Issues](https://github.com/JerrettDavis/Delgato/issues)
+- [Discussions](https://github.com/JerrettDavis/Delgato/discussions)

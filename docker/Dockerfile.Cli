@@ -51,6 +51,6 @@ COPY --from=publish /app/publish .
 LABEL org.opencontainers.image.title="Delgato CLI"
 LABEL org.opencontainers.image.description="Enterprise Agent Swarm CLI"
 LABEL org.opencontainers.image.vendor="Delgato"
-LABEL org.opencontainers.image.source="https://github.com/your-org/delgato"
+LABEL org.opencontainers.image.source="https://github.com/JerrettDavis/Delgato"
 
 ENTRYPOINT ["./Delgato.Cli"]

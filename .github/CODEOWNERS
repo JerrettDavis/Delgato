@@ -2,38 +2,38 @@
 # These owners will be requested for review when someone opens a pull request.
 
 # Default owners for everything
-* @your-org/delgato-maintainers
+* @JerrettDavis
 
 # Core library - requires senior review
-/Delgato.Core/ @your-org/delgato-core-team
+/Delgato.Core/ @JerrettDavis
 
 # Provider implementations
-/Delgato.Providers/ @your-org/delgato-providers-team
+/Delgato.Providers/ @JerrettDavis
 
 # Orchestration engine
-/Delgato.Orchestration/ @your-org/delgato-core-team
+/Delgato.Orchestration/ @JerrettDavis
 
 # Governance and compliance
-/Delgato.Governance/ @your-org/delgato-security-team
+/Delgato.Governance/ @JerrettDavis
 
 # CLI
-/Delgato.Cli/ @your-org/delgato-maintainers
+/Delgato.Cli/ @JerrettDavis
 
 # Dashboard and Web
-/Delgato.Dashboard.Web/ @your-org/delgato-frontend-team
-/Delgato.Dashboard.ApiService/ @your-org/delgato-backend-team
+/Delgato.Dashboard.Web/ @JerrettDavis
+/Delgato.Dashboard.ApiService/ @JerrettDavis
 
 # Infrastructure and CI/CD
-/.github/ @your-org/delgato-devops-team
-/docker/ @your-org/delgato-devops-team
+/.github/ @JerrettDavis
+/docker/ @JerrettDavis
 
 # Documentation
-/docs/ @your-org/delgato-docs-team
-*.md @your-org/delgato-docs-team
+/docs/ @JerrettDavis
+*.md @JerrettDavis
 
 # Tests
-/Delgato.Tests/ @your-org/delgato-qa-team
+/Delgato.Tests/ @JerrettDavis
 
 # Security-sensitive files
-/Delgato.Governance/ @your-org/delgato-security-team
-/.github/workflows/codeql.yml @your-org/delgato-security-team
+/Delgato.Governance/ @JerrettDavis
+/.github/workflows/codeql.yml @JerrettDavis

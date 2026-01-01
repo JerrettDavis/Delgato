@@ -21,13 +21,9 @@ We take the security of Delgato seriously. If you believe you have found a secur
 
 ### Please DO:
 
-1. **Report via GitHub Security Advisories**: Go to the [Security Advisories](https://github.com/your-org/delgato/security/advisories/new) page and create a new private security advisory.
+1. **Report via GitHub Security Advisories**: Go to the [Security Advisories](https://github.com/JerrettDavis/Delgato/security/advisories/new) page and create a new private security advisory.
 
-2. **Email us directly**: Send an email to security@your-org.com with:
-   - A description of the vulnerability
-   - Steps to reproduce the issue
-   - Potential impact
-   - Any suggested fixes (optional)
+2. **Open a GitHub Issue** (for non-sensitive issues): If the vulnerability is not sensitive, you can also open a regular issue with the `security` label.
 
 ### What to expect:
 
@@ -103,5 +99,5 @@ We appreciate the security research community's efforts in helping keep Delgato 
 
 ## Contact
 
-- Security Email: security@your-org.com
-- GitHub Security Advisories: [Create Advisory](https://github.com/your-org/delgato/security/advisories/new)
+- GitHub Security Advisories: [Create Advisory](https://github.com/JerrettDavis/Delgato/security/advisories/new)
+- GitHub Issues: [Open Issue](https://github.com/JerrettDavis/Delgato/issues) (for non-sensitive issues)

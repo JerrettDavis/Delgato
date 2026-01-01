@@ -19,13 +19,13 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 1. **Fork the repository**
    ```bash
    # Click "Fork" on GitHub, then clone your fork
-   git clone https://github.com/YOUR-USERNAME/delgato.git
-   cd delgato
+   git clone https://github.com/YOUR-USERNAME/Delgato.git
+   cd Delgato
    ```
 
 2. **Add the upstream remote**
    ```bash
-   git remote add upstream https://github.com/your-org/delgato.git
+   git remote add upstream https://github.com/JerrettDavis/Delgato.git
    ```
 
 3. **Build the project**
@@ -42,14 +42,14 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 ### Reporting Bugs
 
-- Use the [Bug Report template](https://github.com/your-org/delgato/issues/new?template=bug_report.yml)
+- Use the [Bug Report template](https://github.com/JerrettDavis/Delgato/issues/new?template=bug_report.yml)
 - Search existing issues first to avoid duplicates
 - Include reproduction steps, expected behavior, and actual behavior
 - Include version information and environment details
 
 ### Suggesting Features
 
-- Use the [Feature Request template](https://github.com/your-org/delgato/issues/new?template=feature_request.yml)
+- Use the [Feature Request template](https://github.com/JerrettDavis/Delgato/issues/new?template=feature_request.yml)
 - Explain the problem you're trying to solve
 - Describe your proposed solution
 - Consider alternatives you've explored
@@ -177,8 +177,8 @@ Releases are handled automatically through GitHub Actions when a version tag is 
 
 ## Getting Help
 
-- **Questions**: Open a [Discussion](https://github.com/your-org/delgato/discussions)
-- **Bugs**: Open an [Issue](https://github.com/your-org/delgato/issues)
+- **Questions**: Open a [Discussion](https://github.com/JerrettDavis/Delgato/discussions)
+- **Bugs**: Open an [Issue](https://github.com/JerrettDavis/Delgato/issues)
 - **Security**: See [SECURITY.md](SECURITY.md)
 
 ## Recognition
