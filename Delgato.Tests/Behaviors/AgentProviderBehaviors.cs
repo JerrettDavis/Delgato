@@ -2,6 +2,7 @@ using Delgato.Core;
 using Delgato.Core.Abstractions;
 using Delgato.Providers;
 using Microsoft.Extensions.Logging.Abstractions;
+using ExecutionContext = Delgato.Core.ExecutionContext;
 
 namespace Delgato.Tests.Behaviors;
 

@@ -5,6 +5,7 @@ using System.Text.Json;
 using Delgato.Core;
 using Delgato.Core.Abstractions;
 using Microsoft.Extensions.Logging;
+using ExecutionContext = Delgato.Core.ExecutionContext;
 
 namespace Delgato.Providers;
 
