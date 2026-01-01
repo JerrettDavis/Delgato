@@ -1,0 +1,39 @@
+# Delgato Code Owners
+# These owners will be requested for review when someone opens a pull request.
+
+# Default owners for everything
+* @JerrettDavis
+
+# Core library - requires senior review
+/Delgato.Core/ @JerrettDavis
+
+# Provider implementations
+/Delgato.Providers/ @JerrettDavis
+
+# Orchestration engine
+/Delgato.Orchestration/ @JerrettDavis
+
+# Governance and compliance
+/Delgato.Governance/ @JerrettDavis
+
+# CLI
+/Delgato.Cli/ @JerrettDavis
+
+# Dashboard and Web
+/Delgato.Dashboard.Web/ @JerrettDavis
+/Delgato.Dashboard.ApiService/ @JerrettDavis
+
+# Infrastructure and CI/CD
+/.github/ @JerrettDavis
+/docker/ @JerrettDavis
+
+# Documentation
+/docs/ @JerrettDavis
+*.md @JerrettDavis
+
+# Tests
+/Delgato.Tests/ @JerrettDavis
+
+# Security-sensitive files
+/Delgato.Governance/ @JerrettDavis
+/.github/workflows/codeql.yml @JerrettDavis

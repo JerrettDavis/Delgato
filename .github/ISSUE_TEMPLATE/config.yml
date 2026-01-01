@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://JerrettDavis.github.io/Delgato/
+    about: Check the documentation for help and examples
+  - name: 💬 Discussions
+    url: https://github.com/JerrettDavis/Delgato/discussions
+    about: Ask questions and discuss ideas
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/JerrettDavis/Delgato/security/advisories/new
+    about: Report security vulnerabilities privately

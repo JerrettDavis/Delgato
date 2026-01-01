@@ -1,0 +1,296 @@
+@page "/swarm"
+@using Delgato.Core
+@using Delgato.Core.Abstractions
+@using Delgato.Core.AgentTree
+@using Delgato.Orchestration
+@inject IOrchestrator Orchestrator
+@inject IAgentRegistry AgentRegistry
+@inject ILogger<Swarm> Logger
+@rendermode InteractiveServer
+
+<PageTitle>Swarm - Delgato</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">
+            <i class="bi bi-diagram-3 me-2"></i>Agent Swarm
+        </h1>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="OpenExecuteModal">
+                <i class="bi bi-play-fill me-1"></i>Execute Request
+            </button>
+            <button class="btn btn-outline-secondary" @onclick="RefreshTrees">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="d-flex justify-content-center p-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Status Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Active Trees</h5>
+                        <h2 class="mb-0">@TreeSummaries.Count</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Agents</h5>
+                        <h2 class="mb-0">@TotalAgents</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Tokens</h5>
+                        <h2 class="mb-0">@TreeSummaries.Sum(t => t.TotalTokensUsed).ToString("N0")</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Cost</h5>
+                        <h2 class="mb-0">@TreeSummaries.Sum(t => t.TotalCost).ToString("C")</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Execution Trees -->
+        @if (TreeSummaries.Count == 0)
+        {
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No active execution trees</p>
+                    <button class="btn btn-primary mt-3" @onclick="OpenExecuteModal">
+                        Execute Your First Request
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Execution Trees</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tree ID</th>
+                                <th>Correlation ID</th>
+                                <th>State</th>
+                                <th>Nodes</th>
+                                <th>Depth</th>
+                                <th>Tokens</th>
+                                <th>Cost</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tree in TreeSummaries)
+                            {
+                                <tr>
+                                    <td><code>@tree.TreeId.ToString()[..8]</code></td>
+                                    <td><code>@tree.CorrelationId[..Math.Min(15, tree.CorrelationId.Length)]</code></td>
+                                    <td>
+                                        <span class="badge @GetStateClass(tree.State)">
+                                            @tree.State
+                                        </span>
+                                    </td>
+                                    <td>@tree.NodeCount</td>
+                                    <td>@tree.MaxDepthReached</td>
+                                    <td>@tree.TotalTokensUsed.ToString("N0")</td>
+                                    <td>@tree.TotalCost.ToString("C")</td>
+                                    <td>@(tree.Duration?.TotalSeconds.ToString("F1") ?? "-")s</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewTree(tree)">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<!-- Execute Modal -->
+@if (ShowExecuteModal)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Execute Request</h5>
+                    <button type="button" class="btn-close" @onclick="CloseExecuteModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Request</label>
+                        <textarea class="form-control" rows="4" @bind="ExecuteRequest"
+                                  placeholder="Enter your request..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Max Depth</label>
+                            <input type="number" class="form-control" @bind="MaxDepth" min="1" max="20" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Max Tokens</label>
+                            <input type="number" class="form-control" @bind="MaxTokens" min="100" max="100000" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Max Cost ($)</label>
+                            <input type="number" class="form-control" @bind="MaxCost" min="0.01" step="0.01" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseExecuteModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="ExecuteSwarmRequest" disabled="@IsExecuting">
+                        @if (IsExecuting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Execute
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool IsLoading = true;
+    private bool ShowExecuteModal = false;
+    private bool IsExecuting = false;
+    private IReadOnlyList<AgentTreeSummary> TreeSummaries = Array.Empty<AgentTreeSummary>();
+    private int TotalAgents = 0;
+
+    // Execute form
+    private string ExecuteRequest = "";
+    private int MaxDepth = 5;
+    private int MaxTokens = 10000;
+    private decimal MaxCost = 1.0m;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        IsLoading = true;
+        try
+        {
+            var agents = await AgentRegistry.GetAllDefinitionsAsync();
+            TotalAgents = agents.Count;
+
+            if (Orchestrator is TreeOrchestrator treeOrch)
+            {
+                TreeSummaries = treeOrch.GetTreeSummaries();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load swarm data");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task RefreshTrees()
+    {
+        await LoadData();
+    }
+
+    private void OpenExecuteModal()
+    {
+        ShowExecuteModal = true;
+        ExecuteRequest = "";
+    }
+
+    private void CloseExecuteModal()
+    {
+        ShowExecuteModal = false;
+    }
+
+    private async Task ExecuteSwarmRequest()
+    {
+        if (string.IsNullOrWhiteSpace(ExecuteRequest)) return;
+
+        IsExecuting = true;
+        try
+        {
+            var envelope = new RequestEnvelope
+            {
+                CorrelationId = Guid.NewGuid().ToString(),
+                Source = "dashboard",
+                Payload = ExecuteRequest
+            };
+
+            var context = new ExecutionContext
+            {
+                CorrelationId = envelope.CorrelationId,
+                Budget = new Budget
+                {
+                    MaxDepth = MaxDepth,
+                    MaxTokens = MaxTokens,
+                    MaxCost = MaxCost
+                }
+            };
+
+            var plan = await Orchestrator.CreatePlanAsync(envelope, context);
+            await Orchestrator.ExecutePlanAsync(plan, context);
+
+            await LoadData();
+            CloseExecuteModal();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to execute request");
+        }
+        finally
+        {
+            IsExecuting = false;
+        }
+    }
+
+    private void ViewTree(AgentTreeSummary tree)
+    {
+        // Navigate to tree detail page
+    }
+
+    private string GetStateClass(AgentTreeState state) => state switch
+    {
+        AgentTreeState.Running => "bg-warning",
+        AgentTreeState.Completed => "bg-success",
+        AgentTreeState.Failed => "bg-danger",
+        AgentTreeState.Cancelled => "bg-secondary",
+        _ => "bg-info"
+    };
+}

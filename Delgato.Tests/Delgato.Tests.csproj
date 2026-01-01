@@ -24,6 +24,8 @@
     <ProjectReference Include="..\Delgato.Agents\Delgato.Agents.csproj" />
     <ProjectReference Include="..\Delgato.Orchestration\Delgato.Orchestration.csproj" />
     <ProjectReference Include="..\Delgato.Transports\Delgato.Transports.csproj" />
+    <ProjectReference Include="..\Delgato.Providers\Delgato.Providers.csproj" />
+    <ProjectReference Include="..\Delgato.Governance\Delgato.Governance.csproj" />
   </ItemGroup>
 
 </Project>

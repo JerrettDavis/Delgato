@@ -1,0 +1,61 @@
+mode: ContinuousDeployment
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatch
+tag-prefix: 'v'
+
+branches:
+  main:
+    regex: ^main$
+    mode: ContinuousDeployment
+    tag: ''
+    increment: Patch
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    source-branches: ['develop', 'feature', 'hotfix', 'release']
+    is-release-branch: true
+
+  develop:
+    regex: ^develop$
+    mode: ContinuousDeployment
+    tag: alpha
+    increment: Minor
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: true
+    source-branches: []
+
+  feature:
+    regex: ^feature[/-]
+    mode: ContinuousDeployment
+    tag: 'feature-{BranchName}'
+    increment: Inherit
+    prevent-increment-of-merged-branch-version: false
+    source-branches: ['develop', 'main', 'feature']
+
+  release:
+    regex: ^release[/-]
+    mode: ContinuousDeployment
+    tag: rc
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    source-branches: ['develop', 'main']
+    is-release-branch: true
+
+  hotfix:
+    regex: ^hotfix[/-]
+    mode: ContinuousDeployment
+    tag: hotfix
+    increment: Patch
+    prevent-increment-of-merged-branch-version: false
+    source-branches: ['main']
+
+  pull-request:
+    regex: ^(pull|pr)[/-]
+    mode: ContinuousDeployment
+    tag: 'pr-{BranchName}'
+    increment: Inherit
+    source-branches: ['develop', 'main', 'feature', 'release', 'hotfix']
+
+ignore:
+  sha: []
+
+merge-message-formats: {}

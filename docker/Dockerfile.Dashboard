@@ -1,0 +1,63 @@
+# Delgato Dashboard Dockerfile
+# Multi-stage build for optimized production image
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8443
+
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG BUILD_VERSION=1.0.0
+WORKDIR /src
+
+# Copy solution and project files
+COPY ["Delgato.slnx", "."]
+COPY ["Delgato.Core/Delgato.Core.csproj", "Delgato.Core/"]
+COPY ["Delgato.Providers/Delgato.Providers.csproj", "Delgato.Providers/"]
+COPY ["Delgato.Orchestration/Delgato.Orchestration.csproj", "Delgato.Orchestration/"]
+COPY ["Delgato.Governance/Delgato.Governance.csproj", "Delgato.Governance/"]
+COPY ["Delgato.Configuration/Delgato.Configuration.csproj", "Delgato.Configuration/"]
+COPY ["Delgato.Agents/Delgato.Agents.csproj", "Delgato.Agents/"]
+COPY ["Delgato.Transports/Delgato.Transports.csproj", "Delgato.Transports/"]
+COPY ["Delgato.Tools/Delgato.Tools.csproj", "Delgato.Tools/"]
+COPY ["Delgato.Policies/Delgato.Policies.csproj", "Delgato.Policies/"]
+COPY ["Delgato.Dashboard.Web/Delgato.Dashboard.Web.csproj", "Delgato.Dashboard.Web/"]
+COPY ["Delgato.Dashboard.ServiceDefaults/Delgato.Dashboard.ServiceDefaults.csproj", "Delgato.Dashboard.ServiceDefaults/"]
+COPY ["Delgato/Delgato.csproj", "Delgato/"]
+
+# Restore dependencies
+RUN dotnet restore "Delgato.Dashboard.Web/Delgato.Dashboard.Web.csproj"
+
+# Copy source code
+COPY . .
+
+# Build
+WORKDIR "/src/Delgato.Dashboard.Web"
+RUN dotnet build "Delgato.Dashboard.Web.csproj" -c Release -o /app/build
+
+# Publish stage
+FROM build AS publish
+RUN dotnet publish "Delgato.Dashboard.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Final stage
+FROM base AS final
+WORKDIR /app
+
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser && chown -R appuser:appuser /app
+USER appuser
+
+COPY --from=publish /app/publish .
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Labels
+LABEL org.opencontainers.image.title="Delgato Dashboard"
+LABEL org.opencontainers.image.description="Enterprise Agent Swarm Dashboard"
+LABEL org.opencontainers.image.vendor="Delgato"
+LABEL org.opencontainers.image.source="https://github.com/JerrettDavis/Delgato"
+
+ENTRYPOINT ["dotnet", "Delgato.Dashboard.Web.dll"]

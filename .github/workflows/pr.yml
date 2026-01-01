@@ -1,0 +1,148 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+jobs:
+  build-and-test:
+    name: Build and Test (.NET ${{ matrix.dotnet-version }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        dotnet-version: ['10.0.x']
+        include:
+          - os: ubuntu-latest
+            dotnet-version: '9.0.x'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Restore dependencies
+        run: dotnet restore Delgato.slnx
+
+      - name: Build
+        run: dotnet build Delgato.slnx --configuration Release --no-restore
+
+      - name: Test with Coverage
+        shell: bash
+        run: |
+          dotnet test Delgato.slnx \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage \
+            --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.dotnet-version }}
+          path: |
+            ./coverage/**/*.trx
+            ./coverage/**/*.xml
+
+      - name: Generate Coverage Report
+        if: matrix.os == 'ubuntu-latest' && matrix.dotnet-version == '10.0.x'
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: './coverage/**/coverage.cobertura.xml'
+          targetdir: './coverage/report'
+          reporttypes: 'HtmlInline;Cobertura;MarkdownSummary'
+
+      - name: Upload Coverage Report
+        if: matrix.os == 'ubuntu-latest' && matrix.dotnet-version == '10.0.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./coverage/report
+
+      - name: Add Coverage PR Comment
+        if: github.event_name == 'pull_request' && matrix.os == 'ubuntu-latest' && matrix.dotnet-version == '10.0.x'
+        continue-on-error: true  # May fail on forks or without PR permissions
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: ./coverage/report/Summary.md
+
+      - name: Upload to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.dotnet-version == '10.0.x'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/**/coverage.cobertura.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  lint:
+    name: Code Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Delgato.slnx
+
+      - name: Check formatting
+        continue-on-error: true  # TODO: Remove once codebase formatting is fixed
+        run: dotnet format Delgato.slnx --verify-no-changes --verbosity diagnostic
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Delgato.slnx
+
+      - name: Run security audit
+        run: |
+          dotnet list Delgato.slnx package --vulnerable --include-transitive 2>&1 | tee security-audit.txt
+          if grep -q "has the following vulnerable packages" security-audit.txt; then
+            echo "::warning::Vulnerable packages detected. Review security-audit.txt for details."
+          fi
+
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit
+          path: security-audit.txt

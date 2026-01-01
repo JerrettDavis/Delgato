@@ -1,0 +1,249 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version override (e.g., 1.0.0)'
+        required: false
+        type: string
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+jobs:
+  version:
+    name: Determine Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.gitversion.outputs.semVer }}
+      nuget-version: ${{ steps.gitversion.outputs.nuGetVersionV2 }}
+      informational-version: ${{ steps.gitversion.outputs.informationalVersion }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v1
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v1
+        with:
+          useConfigFile: true
+          configFilePath: GitVersion.yml
+
+      - name: Display Version
+        run: |
+          echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+          echo "NuGet Version: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+
+  build:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    needs: version
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Delgato.slnx
+
+      - name: Build
+        run: |
+          dotnet build Delgato.slnx \
+            --configuration Release \
+            --no-restore \
+            -p:Version=${{ needs.version.outputs.version }} \
+            -p:PackageVersion=${{ needs.version.outputs.nuget-version }} \
+            -p:InformationalVersion=${{ needs.version.outputs.informational-version }}
+
+      - name: Test
+        run: |
+          dotnet test Delgato.slnx \
+            --configuration Release \
+            --no-build \
+            --verbosity normal
+
+      - name: Pack NuGet Packages
+        run: |
+          dotnet pack Delgato.slnx \
+            --configuration Release \
+            --no-build \
+            --output ./packages \
+            -p:PackageVersion=${{ needs.version.outputs.nuget-version }} \
+            -p:IncludeSymbols=true \
+            -p:SymbolPackageFormat=snupkg
+
+      - name: Upload Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./packages/*.nupkg
+
+      - name: Upload Symbol Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbol-packages
+          path: ./packages/*.snupkg
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [version, build]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./packages
+
+      - name: Download Symbol Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: symbol-packages
+          path: ./packages
+
+      - name: Check if tag exists
+        id: check-tag
+        run: |
+          git fetch --tags
+          if git rev-parse "v${{ needs.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag v${{ needs.version.outputs.version }} already exists. Skipping tag creation."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Git Tag
+        if: steps.check-tag.outputs.exists != 'true' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ needs.version.outputs.version }}" -m "Release v${{ needs.version.outputs.version }}"
+          git push origin "v${{ needs.version.outputs.version }}"
+
+      - name: Generate Release Notes
+        id: release-notes
+        run: |
+          cat << 'EOF' > release-notes.md
+          ## Delgato v${{ needs.version.outputs.version }}
+
+          ### 📦 Packages
+
+          | Package | Version |
+          |---------|---------|
+          | Delgato.Core | ${{ needs.version.outputs.nuget-version }} |
+          | Delgato.Providers | ${{ needs.version.outputs.nuget-version }} |
+          | Delgato.Orchestration | ${{ needs.version.outputs.nuget-version }} |
+          | Delgato.Governance | ${{ needs.version.outputs.nuget-version }} |
+          | Delgato.Cli | ${{ needs.version.outputs.nuget-version }} |
+          | Delgato.Configuration | ${{ needs.version.outputs.nuget-version }} |
+          | Delgato.Agents | ${{ needs.version.outputs.nuget-version }} |
+
+          ### 🐳 Docker Images
+
+          ```bash
+          docker pull ghcr.io/${{ github.repository_owner }}/delgato:${{ needs.version.outputs.version }}
+          docker pull ghcr.io/${{ github.repository_owner }}/delgato:latest
+          ```
+
+          ### 📥 Installation
+
+          ```bash
+          # Install CLI
+          dotnet tool install -g Delgato.Cli --version ${{ needs.version.outputs.nuget-version }}
+
+          # Add packages
+          dotnet add package Delgato.Core --version ${{ needs.version.outputs.nuget-version }}
+          ```
+
+          ### 📚 Documentation
+
+          Full documentation available at the [Delgato Documentation Site](https://${{ github.repository_owner }}.github.io/delgato/).
+          EOF
+
+      - name: Create GitHub Release
+        if: steps.check-tag.outputs.exists != 'true' || startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          name: Delgato v${{ needs.version.outputs.version }}
+          body_path: release-notes.md
+          files: |
+            ./packages/*.nupkg
+            ./packages/*.snupkg
+          draft: false
+          prerelease: ${{ contains(needs.version.outputs.version, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-nuget:
+    name: Publish to NuGet
+    runs-on: ubuntu-latest
+    needs: [version, build, release]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./packages
+
+      - name: Download Symbol Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: symbol-packages
+          path: ./packages
+
+      - name: Publish to NuGet.org
+        if: env.NUGET_API_KEY != ''
+        run: |
+          dotnet nuget push ./packages/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+      - name: Publish to GitHub Packages
+        run: |
+          dotnet nuget push ./packages/*.nupkg \
+            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
+            --skip-duplicate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
