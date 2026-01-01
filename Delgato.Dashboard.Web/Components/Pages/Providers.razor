@@ -1,0 +1,160 @@
+@page "/providers"
+@using Delgato.Core.Abstractions
+@using Delgato.Providers
+@inject IServiceProvider ServiceProvider
+@inject ILogger<Providers> Logger
+@rendermode InteractiveServer
+
+<PageTitle>Providers - Delgato</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">
+            <i class="bi bi-cloud me-2"></i>LLM Providers
+        </h1>
+        <button class="btn btn-outline-primary" @onclick="CheckAllHealth">
+            <i class="bi bi-heart-pulse me-1"></i>Check Health
+        </button>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="d-flex justify-content-center p-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var provider in ProviderInfos)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">@provider.DisplayName</h5>
+                            @if (provider.HealthResult != null)
+                            {
+                                <span class="badge @(provider.HealthResult.IsHealthy ? "bg-success" : "bg-danger")">
+                                    @(provider.HealthResult.IsHealthy ? "Healthy" : "Unhealthy")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Unknown</span>
+                            }
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-2">
+                                <strong>Provider ID:</strong> <code>@provider.ProviderId</code>
+                            </p>
+
+                            <h6 class="mt-3">Supported Models</h6>
+                            <div class="d-flex flex-wrap gap-1 mb-3">
+                                @foreach (var model in provider.SupportedModels.Take(5))
+                                {
+                                    <span class="badge bg-light text-dark">@model</span>
+                                }
+                                @if (provider.SupportedModels.Count > 5)
+                                {
+                                    <span class="badge bg-secondary">+@(provider.SupportedModels.Count - 5) more</span>
+                                }
+                            </div>
+
+                            <h6>Capabilities</h6>
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach (var cap in provider.Capabilities)
+                                {
+                                    <span class="badge bg-primary">@cap</span>
+                                }
+                            </div>
+
+                            @if (provider.HealthResult?.Latency != null)
+                            {
+                                <p class="text-muted mt-3 mb-0 small">
+                                    <i class="bi bi-clock me-1"></i>
+                                    Latency: @provider.HealthResult.Latency.Value.TotalMilliseconds.ToString("F0")ms
+                                </p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (ProviderInfos.Count == 0)
+        {
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-cloud-slash display-4 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No providers configured</p>
+                    <p class="small text-muted">Set API keys as environment variables to enable providers</p>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool IsLoading = true;
+    private List<ProviderInfo> ProviderInfos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProviders();
+    }
+
+    private async Task LoadProviders()
+    {
+        IsLoading = true;
+        try
+        {
+            var registry = ServiceProvider.GetService<IProviderRegistry>();
+            if (registry != null)
+            {
+                var providers = registry.GetAll();
+                ProviderInfos = providers.Select(p => new ProviderInfo
+                {
+                    ProviderId = p.ProviderId,
+                    DisplayName = p.DisplayName,
+                    SupportedModels = p.SupportedModels,
+                    Capabilities = p.Capabilities
+                }).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load providers");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task CheckAllHealth()
+    {
+        var registry = ServiceProvider.GetService<IProviderRegistry>();
+        if (registry == null) return;
+
+        var results = await registry.CheckHealthAsync();
+        foreach (var info in ProviderInfos)
+        {
+            if (results.TryGetValue(info.ProviderId, out var result))
+            {
+                info.HealthResult = result;
+            }
+        }
+        StateHasChanged();
+    }
+
+    private class ProviderInfo
+    {
+        public string ProviderId { get; set; } = "";
+        public string DisplayName { get; set; } = "";
+        public IReadOnlyList<string> SupportedModels { get; set; } = Array.Empty<string>();
+        public IReadOnlyList<string> Capabilities { get; set; } = Array.Empty<string>();
+        public ProviderHealthResult? HealthResult { get; set; }
+    }
+}

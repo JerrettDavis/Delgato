@@ -1,0 +1,54 @@
+- name: Getting Started
+  href: getting-started.md
+- name: Architecture
+  href: architecture.md
+- name: Agents
+  items:
+    - name: Overview
+      href: agents.md
+    - name: Creating Agents
+      href: creating-agents.md
+    - name: Agent Configuration
+      href: agent-configuration.md
+- name: Orchestration
+  items:
+    - name: Overview
+      href: orchestration.md
+    - name: N-Tree Model
+      href: n-tree-model.md
+    - name: Planning & Execution
+      href: planning-execution.md
+- name: Providers
+  items:
+    - name: Overview
+      href: providers.md
+    - name: Claude (Anthropic)
+      href: provider-claude.md
+    - name: OpenAI
+      href: provider-openai.md
+    - name: Gemini (Google)
+      href: provider-gemini.md
+    - name: Custom Providers
+      href: custom-providers.md
+- name: Governance
+  items:
+    - name: Overview
+      href: governance.md
+    - name: Audit Logging
+      href: audit-logging.md
+    - name: Cost Tracking
+      href: cost-tracking.md
+    - name: Compliance
+      href: compliance.md
+- name: CLI Reference
+  href: cli-reference.md
+- name: Dashboard
+  href: dashboard.md
+- name: Deployment
+  items:
+    - name: Docker
+      href: deployment-docker.md
+    - name: Kubernetes
+      href: deployment-kubernetes.md
+    - name: Production Checklist
+      href: production-checklist.md

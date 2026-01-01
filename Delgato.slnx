@@ -1,12 +1,16 @@
 <Solution>
   <Project Path="Delgato.Agents/Delgato.Agents.csproj" />
+  <Project Path="Delgato.Cli/Delgato.Cli.csproj" />
   <Project Path="Delgato.Configuration/Delgato.Configuration.csproj" />
   <Project Path="Delgato.Core/Delgato.Core.csproj" />
   <Project Path="Delgato.Dashboard.AppHost/Delgato.Dashboard.AppHost.csproj" />
+  <Project Path="Delgato.Dashboard.ApiService/Delgato.Dashboard.ApiService.csproj" />
   <Project Path="Delgato.Dashboard.ServiceDefaults/Delgato.Dashboard.ServiceDefaults.csproj" />
   <Project Path="Delgato.Dashboard.Web/Delgato.Dashboard.Web.csproj" />
+  <Project Path="Delgato.Governance/Delgato.Governance.csproj" />
   <Project Path="Delgato.Orchestration/Delgato.Orchestration.csproj" />
   <Project Path="Delgato.Policies/Delgato.Policies.csproj" />
+  <Project Path="Delgato.Providers/Delgato.Providers.csproj" />
   <Project Path="Delgato.Tests/Delgato.Tests.csproj" />
   <Project Path="Delgato.Tools/Delgato.Tools.csproj" />
   <Project Path="Delgato.Transports/Delgato.Transports.csproj" />
