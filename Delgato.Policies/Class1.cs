@@ -1,6 +1,5 @@
-﻿namespace Delgato.Policies;
+namespace Delgato.Policies;
 
 public class Class1
 {
-
 }

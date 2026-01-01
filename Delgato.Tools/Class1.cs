@@ -1,6 +1,5 @@
-﻿namespace Delgato.Tools;
+namespace Delgato.Tools;
 
 public class Class1
 {
-
 }
