@@ -41,8 +41,7 @@ public class OrchestratorBehaviors
         {
             CorrelationId = Guid.NewGuid().ToString(),
             Source = "test",
-            Payload = "Test request",
-            Timestamp = DateTimeOffset.UtcNow
+            Payload = "Test request"
         };
     }
 

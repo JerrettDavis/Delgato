@@ -250,8 +250,7 @@
             {
                 CorrelationId = Guid.NewGuid().ToString(),
                 Source = "dashboard",
-                Payload = ExecuteRequest,
-                Timestamp = DateTimeOffset.UtcNow
+                Payload = ExecuteRequest
             };
 
             var context = new ExecutionContext

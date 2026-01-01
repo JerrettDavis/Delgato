@@ -108,8 +108,7 @@ public static class RunCommand
                 {
                     CorrelationId = context.CorrelationId,
                     Source = "cli",
-                    Payload = request,
-                    Timestamp = DateTimeOffset.UtcNow
+                    Payload = request
                 };
 
                 if (json)
@@ -155,10 +154,10 @@ public static class RunCommand
 
                             AnsiConsole.MarkupLine($"[{statusColor}]Status: {result.Status}[/]");
 
-                            foreach (var task in result.Tasks.Where(t => !string.IsNullOrEmpty(t.Result)))
+                            foreach (var task in result.Tasks.Where(t => t.Result != null))
                             {
                                 AnsiConsole.WriteLine();
-                                AnsiConsole.Write(new Panel(task.Result!)
+                                AnsiConsole.Write(new Panel(task.Result?.ToString() ?? string.Empty)
                                 {
                                     Border = BoxBorder.Rounded
                                 });

@@ -163,7 +163,7 @@ public static class AgentCommand
                 .WithId(id)
                 .WithName(name)
                 .WithDescription(description ?? $"Agent: {name}")
-                .WithModel(provider, model)
+                .WithModel(m => m.WithProvider(provider).WithModelId(model))
                 .WithCapabilities(capabilities.Length > 0 ? capabilities : new[] { "general" });
 
             if (orchestrator)

@@ -156,8 +156,7 @@ public static class SwarmCommand
                     {
                         CorrelationId = Guid.NewGuid().ToString(),
                         Source = "cli",
-                        Payload = request,
-                        Timestamp = DateTimeOffset.UtcNow
+                        Payload = request
                     };
 
                     var context = new ExecutionContext
@@ -192,10 +191,10 @@ public static class SwarmCommand
                     AnsiConsole.MarkupLine($"Tokens: {context.TokensConsumed}");
                     AnsiConsole.MarkupLine($"Cost: {context.CostAccumulated:C}");
 
-                    foreach (var task in result.Tasks.Where(t => t.Status == TaskStatus.Completed && !string.IsNullOrEmpty(t.Result)))
+                    foreach (var task in result.Tasks.Where(t => t.Status == TaskStatus.Completed && t.Result != null))
                     {
                         AnsiConsole.WriteLine();
-                        AnsiConsole.Write(new Panel(task.Result!)
+                        AnsiConsole.Write(new Panel(task.Result?.ToString() ?? string.Empty)
                         {
                             Header = new PanelHeader($"Task: {task.TaskId}"),
                             Border = BoxBorder.Rounded

@@ -133,8 +133,7 @@ public static class InteractiveCommand
                             {
                                 CorrelationId = Guid.NewGuid().ToString(),
                                 Source = "cli-interactive",
-                                Payload = input,
-                                Timestamp = DateTimeOffset.UtcNow
+                                Payload = input
                             };
 
                             var context = new ExecutionContext
@@ -149,10 +148,10 @@ public static class InteractiveCommand
                                     var plan = await orchestrator.CreatePlanAsync(envelope, context);
                                     var result = await orchestrator.ExecutePlanAsync(plan, context);
 
-                                    foreach (var task in result.Tasks.Where(t => !string.IsNullOrEmpty(t.Result)))
+                                    foreach (var task in result.Tasks.Where(t => t.Result != null))
                                     {
                                         AnsiConsole.WriteLine();
-                                        AnsiConsole.Write(new Panel(task.Result!)
+                                        AnsiConsole.Write(new Panel(task.Result?.ToString() ?? string.Empty)
                                         {
                                             Border = BoxBorder.Rounded
                                         });
