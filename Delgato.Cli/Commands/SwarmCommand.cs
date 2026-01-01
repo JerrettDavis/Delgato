@@ -4,6 +4,8 @@ using Delgato.Core.Abstractions;
 using Delgato.Orchestration;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
+using ExecutionContext = Delgato.Core.ExecutionContext;
+using TaskStatus = Delgato.Core.TaskStatus;
 
 namespace Delgato.Cli.Commands;
 

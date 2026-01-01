@@ -3,6 +3,7 @@ using Delgato.Core;
 using Delgato.Core.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
+using ExecutionContext = Delgato.Core.ExecutionContext;
 
 namespace Delgato.Cli.Commands;
 

@@ -3,8 +3,10 @@ using System.Text.Json;
 using Delgato.Core;
 using Delgato.Core.Abstractions;
 using Delgato.Configuration;
+using Delgato.Configuration.Builders;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
+using ExecutionContext = Delgato.Core.ExecutionContext;
 
 namespace Delgato.Cli.Commands;
 
@@ -291,7 +293,14 @@ public static class AgentCommand
             try
             {
                 var loader = services.GetRequiredService<AgentFileLoader>();
-                var definition = loader.LoadFromFile(path);
+                var definitions = await loader.LoadFromFileAsync(path);
+                var definition = definitions.FirstOrDefault();
+
+                if (definition == null)
+                {
+                    AnsiConsole.MarkupLine("[yellow]No agent definitions found in file[/]");
+                    return;
+                }
 
                 AnsiConsole.MarkupLine($"[green]✓[/] Valid agent configuration");
                 AnsiConsole.MarkupLine($"  ID: {definition.Id.Value}");

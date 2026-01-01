@@ -29,5 +29,10 @@ public sealed record RequestEnvelope
     /// Timestamp when request was received.
     /// </summary>
     public DateTimeOffset ReceivedAt { get; init; } = DateTimeOffset.UtcNow;
+
+    /// <summary>
+    /// Alias for ReceivedAt for backwards compatibility.
+    /// </summary>
+    public DateTimeOffset Timestamp => ReceivedAt;
 }
 

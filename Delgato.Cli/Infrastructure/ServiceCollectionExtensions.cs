@@ -41,10 +41,8 @@ public static class ServiceCollectionExtensions
         // Add agent registry
         services.AddSingleton<IAgentRegistry>(sp =>
         {
-            var logger = sp.GetRequiredService<ILogger<FileBasedAgentRegistry>>();
-            var factory = sp.GetRequiredService<AgentFileLoader>();
             var agentsPath = GetAgentsPath();
-            return new FileBasedAgentRegistry(agentsPath, factory, logger);
+            return new FileBasedAgentRegistry(agentsPath);
         });
 
         // Add agent factory
