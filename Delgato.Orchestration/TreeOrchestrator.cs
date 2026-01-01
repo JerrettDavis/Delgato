@@ -4,6 +4,7 @@ using Delgato.Core.Abstractions;
 using Delgato.Core.AgentTree;
 using Microsoft.Extensions.Logging;
 using ExecutionContext = Delgato.Core.ExecutionContext;
+using TaskStatus = Delgato.Core.TaskStatus;
 
 namespace Delgato.Orchestration;
 
@@ -340,7 +341,7 @@ public sealed class TreeOrchestrator : IOrchestrator
             new TaskNode
             {
                 TaskId = $"task-{Guid.NewGuid():N}",
-                Description = request.Payload,
+                Description = request.Payload?.ToString() ?? string.Empty,
                 Status = TaskStatus.Pending,
                 AssignedAgent = orchestrator.Id
             }

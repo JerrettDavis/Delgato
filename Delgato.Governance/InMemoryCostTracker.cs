@@ -144,8 +144,8 @@ public sealed class InMemoryCostTracker : ICostTracker
         }
 
         // Simple linear projection
-        var dailyCost = events.Sum(e => e.Cost) / historicalPeriod.TotalDays;
-        var predictedCost = dailyCost * period.TotalDays;
+        var dailyCost = events.Sum(e => e.Cost) / (decimal)historicalPeriod.TotalDays;
+        var predictedCost = dailyCost * (decimal)period.TotalDays;
 
         // Calculate variance for bounds
         var dailyCosts = events
@@ -158,7 +158,7 @@ public sealed class InMemoryCostTracker : ICostTracker
             : 0;
 
         var stdDev = (decimal)Math.Sqrt(variance);
-        var marginOfError = stdDev * 1.96m * (decimal)Math.Sqrt(period.TotalDays);
+        var marginOfError = stdDev * 1.96m * (decimal)Math.Sqrt((double)period.TotalDays);
 
         return new CostForecast
         {
@@ -267,9 +267,9 @@ public sealed class InMemoryCostTracker : ICostTracker
         var usagePercent = currentCost / limit.Limit * 100;
 
         if (currentCost >= limit.Limit) return BudgetStatus.Exceeded;
-        if (limit.CriticalThreshold.HasValue && usagePercent >= (double)limit.CriticalThreshold.Value)
+        if (limit.CriticalThreshold.HasValue && usagePercent >= limit.CriticalThreshold.Value)
             return BudgetStatus.Critical;
-        if (limit.WarningThreshold.HasValue && usagePercent >= (double)limit.WarningThreshold.Value)
+        if (limit.WarningThreshold.HasValue && usagePercent >= limit.WarningThreshold.Value)
             return BudgetStatus.Warning;
 
         return BudgetStatus.Healthy;

@@ -12,6 +12,11 @@ public sealed record ToolDefinition
     public IDictionary<string, ParameterDefinition> Parameters { get; init; } = new Dictionary<string, ParameterDefinition>();
     public IDictionary<string, object> Configuration { get; init; } = new Dictionary<string, object>();
     public bool RequiresApproval { get; init; }
+
+    /// <summary>
+    /// JSON Schema for the tool's input parameters (used by LLM providers).
+    /// </summary>
+    public object? InputSchema { get; init; }
 }
 
 public enum ToolType
