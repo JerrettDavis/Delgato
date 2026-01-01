@@ -1,0 +1,15 @@
+apiRules:
+  # Exclude test projects
+  - exclude:
+      uidRegex: ^Delgato\.Tests
+  - exclude:
+      uidRegex: ^AgentLoadTest
+  # Exclude internal types
+  - exclude:
+      hasAttribute:
+        uid: System.Runtime.CompilerServices.InternalsVisibleToAttribute
+  # Exclude auto-generated types
+  - exclude:
+      uidRegex: .*\.<>.*
+  - exclude:
+      uidRegex: .*\..*AnonymousType.*

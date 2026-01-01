@@ -3,7 +3,19 @@
     {
       "src": [
         {
-          "files": ["**/*.csproj"],
+          "files": [
+            "Delgato/Delgato.csproj",
+            "Delgato.Core/Delgato.Core.csproj",
+            "Delgato.Agents/Delgato.Agents.csproj",
+            "Delgato.Configuration/Delgato.Configuration.csproj",
+            "Delgato.Governance/Delgato.Governance.csproj",
+            "Delgato.Orchestration/Delgato.Orchestration.csproj",
+            "Delgato.Policies/Delgato.Policies.csproj",
+            "Delgato.Providers/Delgato.Providers.csproj",
+            "Delgato.Tools/Delgato.Tools.csproj",
+            "Delgato.Transports/Delgato.Transports.csproj",
+            "Delgato.Cli/Delgato.Cli.csproj"
+          ],
           "src": "../.."
         }
       ],
