@@ -1,0 +1,84 @@
+# Label configuration for actions/labeler
+
+# Core library changes
+core:
+  - changed-files:
+      - any-glob-to-any-file: 'Delgato.Core/**/*'
+
+# Provider changes
+providers:
+  - changed-files:
+      - any-glob-to-any-file: 'Delgato.Providers/**/*'
+
+# Orchestration changes
+orchestration:
+  - changed-files:
+      - any-glob-to-any-file: 'Delgato.Orchestration/**/*'
+
+# Governance changes
+governance:
+  - changed-files:
+      - any-glob-to-any-file: 'Delgato.Governance/**/*'
+
+# CLI changes
+cli:
+  - changed-files:
+      - any-glob-to-any-file: 'Delgato.Cli/**/*'
+
+# Dashboard/Web changes
+dashboard:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'Delgato.Dashboard.Web/**/*'
+          - 'Delgato.Dashboard.ApiService/**/*'
+          - 'Delgato.Dashboard.AppHost/**/*'
+
+# Configuration changes
+configuration:
+  - changed-files:
+      - any-glob-to-any-file: 'Delgato.Configuration/**/*'
+
+# Agent changes
+agents:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'Delgato.Agents/**/*'
+          - 'agents/**/*'
+
+# Test changes
+tests:
+  - changed-files:
+      - any-glob-to-any-file: 'Delgato.Tests/**/*'
+
+# Documentation changes
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**/*'
+          - '*.md'
+          - 'README.md'
+
+# CI/CD changes
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**/*'
+          - 'docker/**/*'
+
+# Infrastructure changes
+infrastructure:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docker/**/*'
+          - 'Dockerfile*'
+          - 'docker-compose*.yml'
+          - '*.yaml'
+          - '*.yml'
+
+# Dependencies
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.csproj'
+          - 'Directory.*.props'
+          - 'global.json'

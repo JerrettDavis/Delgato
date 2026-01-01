@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://your-org.github.io/delgato/
+    about: Check the documentation for help and examples
+  - name: 💬 Discussions
+    url: https://github.com/your-org/delgato/discussions
+    about: Ask questions and discuss ideas
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/your-org/delgato/security/advisories/new
+    about: Report security vulnerabilities privately
