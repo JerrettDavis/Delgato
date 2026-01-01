@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Text;
 using Delgato.Core.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
@@ -145,14 +146,5 @@ public static class HealthCommand
         command.Options.OfType<Option<int>>().First());
 
         return command;
-    }
-}
-
-// StringBuilder is used in the monitor command
-file static class StringBuilderExtension
-{
-    public static void Clear(this StringBuilder sb)
-    {
-        sb.Length = 0;
     }
 }

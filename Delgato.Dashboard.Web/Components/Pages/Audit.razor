@@ -149,7 +149,7 @@
                         {
                             var page = i;
                             <li class="page-item @(CurrentPage == page ? "active" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(page)">@page</button>
+                                <button class="page-link" @onclick="() => GoToPage(page)">@(page)</button>
                             </li>
                         }
                         <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">

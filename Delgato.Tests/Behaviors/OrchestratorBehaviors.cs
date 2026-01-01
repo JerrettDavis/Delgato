@@ -229,33 +229,33 @@ internal class MockAgentRegistry : IAgentRegistry
         _agents[worker.Id] = worker;
     }
 
-    public Task<AgentDefinition?> GetDefinitionAsync(AgentId id, CancellationToken ct = default)
+    public ValueTask<AgentDefinition?> GetDefinitionAsync(AgentId id, CancellationToken ct = default)
     {
         _agents.TryGetValue(id, out var def);
-        return Task.FromResult(def);
+        return ValueTask.FromResult(def);
     }
 
-    public Task<IReadOnlyList<AgentDefinition>> GetAllDefinitionsAsync(CancellationToken ct = default)
+    public ValueTask<IReadOnlyList<AgentDefinition>> GetAllDefinitionsAsync(CancellationToken ct = default)
     {
-        return Task.FromResult<IReadOnlyList<AgentDefinition>>(_agents.Values.ToList());
+        return ValueTask.FromResult<IReadOnlyList<AgentDefinition>>(_agents.Values.ToList());
     }
 
-    public Task<IReadOnlyList<AgentDefinition>> FindByCapabilityAsync(string capability, CancellationToken ct = default)
+    public ValueTask<IReadOnlyList<AgentDefinition>> FindByCapabilityAsync(string capability, CancellationToken ct = default)
     {
         var result = _agents.Values.Where(a => a.Capabilities.Contains(capability)).ToList();
-        return Task.FromResult<IReadOnlyList<AgentDefinition>>(result);
+        return ValueTask.FromResult<IReadOnlyList<AgentDefinition>>(result);
     }
 
-    public Task RegisterAsync(AgentDefinition definition, CancellationToken ct = default)
+    public ValueTask RegisterAsync(AgentDefinition definition, CancellationToken ct = default)
     {
         _agents[definition.Id] = definition;
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public Task UnregisterAsync(AgentId id, CancellationToken ct = default)
+    public ValueTask UnregisterAsync(AgentId id, CancellationToken ct = default)
     {
         _agents.Remove(id);
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }
 
